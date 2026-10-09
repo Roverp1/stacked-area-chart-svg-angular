@@ -1,6 +1,6 @@
 import { StackedAreaChartPoint } from './stacked-area-chart/chart.types';
 
-export type DemoDatasetId = 'reference' | 'sparse' | 'zero' | 'single' | 'empty';
+export type DemoDatasetId = 'reference' | 'sparse' | 'zero' | 'single' | 'double' | 'empty';
 
 interface DemoDataset {
   readonly id: DemoDatasetId;
@@ -41,5 +41,10 @@ export const DEMO_DATASETS: readonly DemoDataset[] = [
     })),
   },
   { id: 'single', label: 'Single point', data: referenceData.slice(-1) },
+  {
+    id: 'double',
+    label: 'Two points',
+    data: [referenceData.slice(0, 1)[0], referenceData.slice(-1)[0]],
+  },
   { id: 'empty', label: 'Empty', data: [] },
 ];
