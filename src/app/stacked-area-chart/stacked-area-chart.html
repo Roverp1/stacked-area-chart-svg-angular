@@ -1,0 +1,104 @@
+<svg
+  role="img"
+  lang="de"
+  focusable="false"
+  [attr.aria-labelledby]="titleId + ' ' + descriptionId"
+  [attr.viewBox]="'0 0 ' + layout().width + ' ' + layout().height"
+  [attr.width]="layout().width"
+  [attr.height]="layout().height"
+  [class.compact]="layout().compact"
+>
+  <title [attr.id]="titleId">{{ title() }}</title>
+  <desc [attr.id]="descriptionId">{{ description() }}</desc>
+  <defs>
+    <clipPath [attr.id]="clipId">
+      <rect x="0" y="0" [attr.width]="layout().plotWidth" [attr.height]="layout().plotHeight" />
+    </clipPath>
+  </defs>
+  <g aria-hidden="true" [attr.transform]="'translate(' + layout().left + ',' + layout().top + ')'">
+    @for (tick of yTicks(); track tick.value) {
+      @if (tick.value !== 0) {
+        <line
+          class="grid"
+          x1="0"
+          [attr.y1]="tick.y"
+          [attr.x2]="layout().plotWidth"
+          [attr.y2]="tick.y"
+        />
+      }
+      <text
+        class="axis-label"
+        x="-12"
+        [attr.y]="tick.y"
+        text-anchor="end"
+        dominant-baseline="middle"
+      >
+        {{ tick.label }}
+      </text>
+    }
+
+    <g [attr.clip-path]="'url(#' + clipId + ')'">
+      @for (band of geometry().bands; track band.key) {
+        @if (band.path) {
+          <path [attr.data-series]="band.key" [attr.d]="band.path" [attr.fill]="band.color" />
+        }
+      }
+      @for (marker of singleMarkers(); track marker.key) {
+        <rect
+          [attr.data-series]="marker.key"
+          [attr.x]="marker.x"
+          [attr.y]="marker.y"
+          width="4"
+          [attr.height]="marker.height"
+          [attr.fill]="marker.color"
+        />
+      }
+      @for (boundary of geometry().boundaries.slice(1, 3); track $index) {
+        <path class="separator" [attr.d]="boundary.path" />
+      }
+      @for (badge of badges(); track badge.number) {
+        <g [attr.data-badge]="badge.number">
+          <circle class="badge" [attr.cx]="badge.x" [attr.cy]="badge.y" [attr.r]="badge.radius" />
+          <text
+            class="badge-number"
+            [attr.x]="badge.x"
+            [attr.y]="badge.y"
+            text-anchor="middle"
+            dominant-baseline="central"
+          >
+            {{ badge.number }}
+          </text>
+        </g>
+      }
+    </g>
+
+    <line class="axis" x1="0" y1="0" x2="0" [attr.y2]="layout().plotHeight" />
+    <line
+      class="axis"
+      x1="0"
+      [attr.y1]="layout().plotHeight"
+      [attr.x2]="layout().plotWidth"
+      [attr.y2]="layout().plotHeight"
+    />
+    @for (tick of xTicks(); track tick.age) {
+      <text
+        class="axis-label"
+        [attr.x]="tick.x"
+        [attr.y]="layout().plotHeight + 22"
+        [attr.text-anchor]="tick.anchor"
+      >
+        {{ tick.label }}
+      </text>
+    }
+    @if (message()) {
+      <text
+        class="empty-label"
+        [attr.x]="layout().plotWidth / 2"
+        [attr.y]="layout().plotHeight / 2"
+        text-anchor="middle"
+      >
+        {{ message() }}
+      </text>
+    }
+  </g>
+</svg>

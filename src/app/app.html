@@ -1,0 +1,83 @@
+<main class="demo">
+  <section class="demo-card" aria-labelledby="demo-title">
+    <header class="demo-header">
+      <p class="eyebrow">Angular · native SVG · responsive</p>
+      <h1 id="demo-title">Stacked area chart</h1>
+    </header>
+
+    <div class="controls">
+      <div class="control dataset-control">
+        <label for="dataset">Sample data</label>
+        <select id="dataset" [value]="datasetId()" (change)="selectDataset($event)">
+          @for (sample of datasets; track sample.id) {
+            <option [value]="sample.id">{{ sample.label }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="control">
+        <span id="interpolation-label">Line style</span>
+        <div class="mode-control" role="group" aria-labelledby="interpolation-label">
+          <button
+            type="button"
+            [attr.aria-pressed]="interpolation() === 'monotone'"
+            (click)="interpolation.set('monotone')"
+          >
+            Smooth
+          </button>
+          <button
+            type="button"
+            [attr.aria-pressed]="interpolation() === 'linear'"
+            (click)="interpolation.set('linear')"
+          >
+            Straight
+          </button>
+        </div>
+      </div>
+
+      <div class="control width-control">
+        <div class="width-label">
+          <label for="chart-width">Preview width</label>
+          <output for="chart-width">{{ chartWidth() }} px</output>
+        </div>
+        <input
+          id="chart-width"
+          type="range"
+          min="290"
+          max="700"
+          step="10"
+          [value]="chartWidth()"
+          [attr.aria-valuetext]="chartWidth() + ' pixels maximum'"
+          (input)="resizeChart($event)"
+        />
+      </div>
+    </div>
+
+    <div class="preview-scroll" role="region" aria-label="Chart preview" tabindex="0">
+      <div class="chart-preview" [style.width.px]="chartWidth()">
+        <app-stacked-area-chart
+          [data]="dataset().data"
+          [interpolation]="interpolation()"
+          title="Kapitalentwicklung nach Alter"
+        />
+      </div>
+    </div>
+
+    <p class="preview-note">
+      Preview width is capped by the available space. Try sparse data to compare the line styles.
+    </p>
+  </section>
+
+  <section class="demo-card minimal-card" aria-labelledby="minimal-title">
+    <header class="demo-header">
+      <p class="eyebrow">Copy-ready example</p>
+      <h2 id="minimal-title">Minimal stacked area chart</h2>
+    </header>
+    <div class="preview-scroll">
+      <div class="chart-preview" [style.width.px]="chartWidth()">
+        <app-minimal-stacked-area-chart [data]="dataset().data" />
+      </div>
+    </div>
+    <p class="preview-note">The sample data and preview width controls above apply here too.</p>
+  </section>
+</main>

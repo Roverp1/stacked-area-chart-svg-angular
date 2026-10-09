@@ -1,0 +1,62 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 290px;
+  max-width: 700px;
+  max-height: 350px;
+  background: #f6f7f9;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  color: #20252c;
+}
+
+svg.compact {
+  font-size: 11px;
+}
+
+.axis-label {
+  fill: currentColor;
+}
+
+.empty-label {
+  fill: #596a7b;
+}
+
+.grid {
+  stroke: #d9dde3;
+  stroke-width: 1;
+}
+
+.axis {
+  stroke: #29333d;
+  stroke-width: 1.2;
+}
+
+.separator {
+  fill: none;
+  stroke: #f6f7f9;
+  stroke-width: 2;
+}
+
+.badge {
+  fill: #fff;
+  stroke: #243543;
+  stroke-width: 1;
+}
+
+.badge-number {
+  fill: #172635;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+line,
+.separator,
+.badge {
+  vector-effect: non-scaling-stroke;
+}
