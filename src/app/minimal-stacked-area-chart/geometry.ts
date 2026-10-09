@@ -58,13 +58,14 @@ export function createGeometry(
   const empty = {
     points: [] as StackedAreaChartPoint[],
     bands: [] as { key: string; color: string; path: string }[],
+    markers: [] as { key: string; color: string; y: number; height: number }[],
     badges: [] as { number: number; x: number; y: number }[],
     separators: [] as string[],
     ticks: [0],
     maximum: 1,
   };
   if (
-    data.length < 2 ||
+    data.length === 0 ||
     data.some(
       (point) =>
         !Number.isFinite(point.age) ||
@@ -74,7 +75,7 @@ export function createGeometry(
     return empty;
   const points = [...data].sort((a, b) => a.age - b.age);
   const span = points[points.length - 1].age - points[0].age;
-  const x = points.map((point) => (point.age - points[0].age) / span);
+  const x = points.map((point) => (points.length === 1 ? 0.5 : (point.age - points[0].age) / span));
   if (x.some((value, i) => !Number.isFinite(value) || (i > 0 && value <= x[i - 1]))) return empty;
 
   const cumulative = points.map((point) => [
@@ -91,6 +92,23 @@ export function createGeometry(
   const count = Math.ceil(peak / step);
   const maximum = peak === 0 ? 1 : count * step;
   if (!Number.isFinite(maximum) || step <= 0) return empty;
+
+  const ticks = Array.from({ length: count + 1 }, (_, i) => i * step);
+  if (points.length === 1) {
+    let lower = 0;
+    const markers = series.map((band) => {
+      const upper = points[0][band.key] + lower;
+      const marker = {
+        key: band.key,
+        color: band.color,
+        y: height * (1 - upper / maximum),
+        height: ((upper - lower) / maximum) * height,
+      };
+      lower = upper;
+      return marker;
+    });
+    return { ...empty, points, maximum, ticks, markers };
+  }
 
   const values = [0, 1, 2, 3].map((boundary) =>
     cumulative.map((point) => point[boundary] / maximum),
@@ -140,11 +158,12 @@ export function createGeometry(
     points,
     maximum,
     badges,
-    ticks: Array.from({ length: count + 1 }, (_, i) => i * step),
+    ticks,
     bands: series.map((band, i) => ({
       ...band,
       path: path(curves[i + 1]) + path(curves[i], true).replace(/^M/, 'L') + 'Z',
     })),
+    markers: [],
     separators: curves.slice(1, 3).map((curve) => path(curve)),
   };
 }

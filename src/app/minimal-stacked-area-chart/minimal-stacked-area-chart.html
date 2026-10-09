@@ -31,6 +31,18 @@
     @for (band of chart().bands; track band.key) {
       <path [attr.d]="band.path" [attr.fill]="band.color" />
     }
+    @for (marker of chart().markers; track marker.key) {
+      @if (marker.height > 0) {
+        <rect
+          [attr.data-series]="marker.key"
+          [attr.x]="layout().plotWidth / 2 - 2"
+          [attr.y]="marker.y"
+          width="4"
+          [attr.height]="marker.height"
+          [attr.fill]="marker.color"
+        />
+      }
+    }
     @for (separator of chart().separators; track $index) {
       <path class="separator" [attr.d]="separator" />
     }

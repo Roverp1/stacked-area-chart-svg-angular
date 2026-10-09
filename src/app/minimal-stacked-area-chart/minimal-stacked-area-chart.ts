@@ -44,6 +44,9 @@ export class MinimalStackedAreaChart {
     const { plotWidth, width } = this.layout();
     const first = points[0].age;
     const last = points[points.length - 1].age;
+    if (points.length === 1) {
+      return [{ age: first, x: plotWidth / 2, anchor: 'middle' }];
+    }
     const spacing = width < 420 ? 46 : 34;
     let previous = -Infinity;
     return points

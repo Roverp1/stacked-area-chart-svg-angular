@@ -58,9 +58,10 @@ export class Example {
 }
 ```
 
-The example has one input and always draws smooth curves. Supply at least two
-distinct ages with finite, nonnegative amounts. It follows the container width
-between 290px and 700px, with a maximum height of 350px.
+The example has one input and always draws smooth curves. Supply finite,
+nonnegative amounts at one or more distinct ages. One age is rendered as a
+narrow stacked marker; two or more ages form the smooth area. It follows the
+container width between 290px and 700px, with a maximum height of 350px.
 
 ### Full component
 
