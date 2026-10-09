@@ -1,0 +1,65 @@
+x-node: &node
+  image: node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
+  working_dir: /workspace
+  user: '${LOCAL_UID:-1000}:${LOCAL_GID:-100}'
+  read_only: true
+  init: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 256
+  mem_limit: 2g
+  cpus: 2
+  tmpfs:
+    - /tmp:rw,exec,nosuid,nodev,size=512m,mode=1777
+  environment:
+    HOME: /tmp
+    NG_CLI_ANALYTICS: 'false'
+    NG_BUILD_MAX_WORKERS: '2'
+    npm_config_cache: /tmp/npm-cache
+    npm_config_ignore_scripts: 'true'
+    npm_config_audit: 'false'
+    npm_config_fund: 'false'
+    npm_config_update_notifier: 'false'
+  volumes:
+    - type: bind
+      source: .
+      target: /workspace
+      bind:
+        create_host_path: false
+
+services:
+  tooling:
+    <<: *node
+    command: [npm, ci]
+
+  check:
+    <<: *node
+    network_mode: none
+    command: [npm, test, --, --watch=false]
+
+  dev:
+    <<: *node
+    command: [npm, start, --, --host, 0.0.0.0, --port, '4200']
+    networks: [preview]
+
+  preview:
+    <<: *node
+    working_dir: /tmp
+    command: [node, /preview-proxy.mjs]
+    mem_limit: 128m
+    cpus: 0.5
+    depends_on: [dev]
+    volumes:
+      - type: bind
+        source: ./docker/preview-proxy.mjs
+        target: /preview-proxy.mjs
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      - '127.0.0.1:4200:4200'
+    networks: [preview, default]
+
+networks:
+  preview:
+    internal: true
