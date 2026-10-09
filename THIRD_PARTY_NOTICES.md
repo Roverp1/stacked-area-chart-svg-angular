@@ -1,11 +1,10 @@
 # Third-party notices
 
-The Steffen tangent calculation and Hermite-to-Bezier conversion in
-`src/app/stacked-area-chart/chart-geometry.ts` are adapted from d3-shape 3.2.0,
-`src/curve/monotone.js`. Stack accumulation and area traversal follow `src/stack.js`,
-`src/offset/none.js`, and `src/area.js`. No d3 runtime dependency is used.
-
-`src/app/minimal-stacked-area-chart/geometry.ts` reuses these calculations.
+In `src/app/stacked-area-chart/chart-geometry.ts`, curve tangents and
+Hermite-to-Bezier calculations adapt d3-shape 3.2.0's `src/curve/monotone.js`.
+Stack accumulation and area traversal follow `src/stack.js`, `src/offset/none.js`,
+and `src/area.js`. The minimal chart reuses these calculations. d3-shape is not a
+runtime dependency.
 
 ## d3-shape (ISC)
 

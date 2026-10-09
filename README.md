@@ -1,10 +1,10 @@
 # Angular SVG stacked area chart
 
-A standalone presentational component based on the supplied reference image. Three financial series, native SVG, smooth shared boundaries, EUR axes, and numbered badges. Chart geometry has no runtime dependencies.
+A standalone Angular component for three financial series. It renders smooth shared boundaries, EUR axes, and numbered badges in native SVG. Chart geometry has no runtime dependencies.
 
 ![700px chart preview](chart-700.png)
 
-## Run in Docker
+## Run with Docker
 
 ```sh
 export LOCAL_UID="$(id -u)" LOCAL_GID="$(id -g)"
@@ -12,7 +12,7 @@ docker compose run --rm tooling npm ci --ignore-scripts
 docker compose up -d dev preview
 ```
 
-Open [localhost:4200](http://localhost:4200). The demo has smooth/straight modes, a container-width slider, and reference, sparse, zero, single-point, and empty datasets.
+Open [localhost:4200](http://localhost:4200) to try smooth and straight modes, resize the chart, and view the reference, sparse, zero, single-point, and empty datasets.
 
 ```sh
 docker compose run --rm check npm test -- --watch=false
@@ -21,22 +21,19 @@ docker compose run --rm check npm run format:check
 docker compose down
 ```
 
-Production output is in `dist/stacked-area-chart-svg-angular/browser`. The UID/GID variables keep generated project files under your ownership. Docker is the only required host tool.
+Build output goes to `dist/stacked-area-chart-svg-angular/browser`. `LOCAL_UID` and `LOCAL_GID` keep generated files owned by your user. Docker is the only required host tool.
 
-Optional Make shortcuts are `make install`, `make dev`, `make check`, and `make stop`. `make check` runs all three checks. On a Nix machine, `nix-shell -p gnumake` provides Make temporarily.
+Optional Make shortcuts: `make install`, `make dev`, `make check`, and `make stop`. `make check` runs all three checks. On Nix, run `nix-shell -p gnumake` to use Make temporarily.
 
-The Node image is pinned by digest. Containers run as an unprivileged user with a read-only root, dropped capabilities, resource limits, and a project-only mount. Dependency lifecycle scripts are disabled. Builds and tests run without networking. The Angular server uses an internal network; a small Node-built-in-only proxy exposes `127.0.0.1:4200` and mounts only its own source file read-only.
+Containers use a digest-pinned Node image, run as unprivileged users, and have read-only roots, dropped capabilities, resource limits, and restricted mounts. Dependency scripts are disabled; builds and tests have no network access. The Angular server stays on an internal network. A small Node proxy, mounted read-only, exposes it at `127.0.0.1:4200`.
 
 ## Use the component
 
-### Minimal proof of concept
+### Minimal component
 
-The second chart in the demo uses `src/app/minimal-stacked-area-chart/`. Copy that
-directory and `THIRD_PARTY_NOTICES.md` into an Angular 20+ project. The four source
-files contain the component, template, styles, and smooth-path calculations;
-their only package dependency is `@angular/core`.
+Copy `src/app/minimal-stacked-area-chart/` and `THIRD_PARTY_NOTICES.md` into an Angular 20+ project. The component depends only on `@angular/core` and always draws smooth curves.
 
-Import the component into your parent's `imports` array:
+Import it into the parent's `imports` array:
 
 ```ts
 import { Component } from '@angular/core';
@@ -58,10 +55,7 @@ export class Example {
 }
 ```
 
-The example has one input and always draws smooth curves. Supply finite,
-nonnegative amounts at one or more distinct ages. One age is rendered as a
-narrow stacked marker; two or more ages form the smooth area. It follows the
-container width between 290px and 700px, with a maximum height of 350px.
+Pass finite, nonnegative amounts at distinct ages. One age renders as a narrow stacked marker; two or more form a smooth area. The chart follows its container from 290px to 700px wide and is at most 350px tall.
 
 ### Full component
 
@@ -91,25 +85,23 @@ const projection: readonly StackedAreaChartPoint[] = [
 | `interpolation` | `'monotone' \| 'linear'`           | `'monotone'`                    |
 | `title`         | `string`                           | `Kapitalentwicklung nach Alter` |
 
-Each amount supplies one band's value at that age. The upper boundary is the sum of all three amounts. Band order is contributions (blue), government support (navy), then investment growth (orange). Supply a new array when updating data.
+Each amount is a series value at that age. The upper boundary is the sum of all three series. Bands run from contributions (blue) to government support (navy) to investment growth (orange). Pass a new array to update the data.
 
-The component follows its container between **290px and 700px**. Height is `clamp(260px, width / 2, 350px)`. Labels keep a readable font size, age ticks become less dense on small screens, and narrow currency ticks use explicit thousands/millions units. Containers below 290px can wrap the component in `overflow-x: auto`.
+The chart scales from 290px to 700px wide and from 260px to 350px tall (`clamp(260px, width / 2, 350px)`). Labels remain readable, age ticks thin out on small screens, and tight currency ticks use explicit thousands or millions. For containers under 290px, use `overflow-x: auto`.
 
 ## Data behavior
 
-- Ages are finite numbers and must be unique. A sorted copy is used; input records are untouched.
+- Ages must be finite and unique. The chart sorts a copy and leaves input records unchanged.
 - Amounts must be finite and nonnegative. Invalid or numerically unrepresentable data shows an invalid-data state.
-- Empty input shows an empty state. All-zero input keeps the zero baseline without positive monetary ticks.
-- One age shows a narrow stacked marker. Two ages use straight boundaries.
-- Badges appear only when their entire circle fits inside the band.
-- The SVG's title and description identify the age range, series, and final amounts. Each instance has its own accessibility and clipping IDs.
+- Empty input shows an empty state. All-zero data keeps the zero baseline and hides positive currency ticks.
+- One age shows a narrow stacked marker; two ages use straight boundaries.
+- Badges appear only when the full circle fits inside a band.
+- The SVG title and description include the age range, series, and final amounts. Each chart instance gets unique accessibility and clipping IDs.
 
 ## Implementation
 
-- `src/app/stacked-area-chart/stacked-area-chart.ts`, `.html`, `.scss`: signal inputs, resize observation, labels, badges, and SVG rendering.
-- `src/app/stacked-area-chart/chart-geometry.ts`: cumulative stacks, nice y ticks, shared Bézier boundaries, and closed area paths.
-- `src/app/demo-data.ts`: example data owned by the demo parent.
+- `src/app/stacked-area-chart/stacked-area-chart.ts`, `.html`, `.scss`: inputs, resize handling, labels, badges, and SVG rendering.
+- `src/app/stacked-area-chart/chart-geometry.ts`: stacked values, y-axis ticks, Bézier boundaries, and area paths.
+- `src/app/demo-data.ts`: data used by the demo.
 
-The tangent calculation and Hermite-to-Bézier conversion are adapted from **d3-shape's `src/curve/monotone.js`**. Stack accumulation and upper-forward/lower-reverse area traversal follow its `stack.js`, `offset/none.js`, and `area.js`. Shared per-knot tangent damping keeps all band controls ordered while retaining continuous slopes and bounded totals. Adjacent fills and white separators reuse identical geometry.
-
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the retained ISC license. The notice is included in production assets.
+The curve and area calculations adapt d3-shape 3.2.0. Damped tangents keep the bands ordered and smooth, and adjacent fills share geometry. d3-shape is not a runtime dependency. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the ISC license, which is included in production assets.
