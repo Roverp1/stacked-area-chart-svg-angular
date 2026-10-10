@@ -1,13 +1,14 @@
 import { Component, computed, signal } from '@angular/core';
 import { StackedAreaChart } from './stacked-area-chart/stacked-area-chart';
 import { MinimalStackedAreaChart } from './minimal-stacked-area-chart/minimal-stacked-area-chart';
+import { MinimalStackedAreaChartLinear } from './minimal-stacked-area-chart-linear/minimal-stacked-area-chart-linear';
 import { ChartInterpolation } from './stacked-area-chart/chart.types';
 import { DEMO_DATASETS, DemoDatasetId } from './demo-data';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [StackedAreaChart, MinimalStackedAreaChart],
+  imports: [StackedAreaChart, MinimalStackedAreaChart, MinimalStackedAreaChartLinear],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

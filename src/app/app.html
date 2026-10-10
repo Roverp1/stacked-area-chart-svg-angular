@@ -80,4 +80,19 @@
     </div>
     <p class="preview-note">The sample data and preview width controls above apply here too.</p>
   </section>
+
+  <section class="demo-card minimal-card" aria-labelledby="linear-title">
+    <header class="demo-header">
+      <p class="eyebrow">Copy-ready example · no curve math</p>
+      <h2 id="linear-title">Minimal stacked area chart · straight lines</h2>
+    </header>
+    <div class="preview-scroll">
+      <div class="chart-preview" [style.width.px]="chartWidth()">
+        <app-minimal-stacked-area-chart-linear [data]="dataset().data" />
+      </div>
+    </div>
+    <p class="preview-note">
+      This version connects the data points with straight SVG line segments.
+    </p>
+  </section>
 </main>

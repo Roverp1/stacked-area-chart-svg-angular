@@ -57,6 +57,34 @@ export class Example {
 
 Pass finite, nonnegative amounts at distinct ages. One age renders as a narrow stacked marker; two or more form a smooth area. The chart follows its container from 290px to 700px wide and is at most 350px tall.
 
+### Minimal straight-line component
+
+`src/app/minimal-stacked-area-chart-linear/` is a standalone alternative that
+connects samples with plain SVG line segments, without curve or spline logic.
+Copy the folder into your Angular project, then import it into the parent component:
+
+```ts
+import { Component } from '@angular/core';
+import { MinimalStackedAreaChartLinear } from './minimal-stacked-area-chart-linear/minimal-stacked-area-chart-linear';
+import type { StackedAreaChartPoint } from './minimal-stacked-area-chart-linear/geometry';
+
+@Component({
+  selector: 'app-example',
+  standalone: true,
+  imports: [MinimalStackedAreaChartLinear],
+  template: '<app-minimal-stacked-area-chart-linear [data]="projection" />',
+})
+export class Example {
+  readonly projection: readonly StackedAreaChartPoint[] = [
+    { age: 35, contributions: 0, governmentSupport: 0, investmentGrowth: 0 },
+    { age: 51, contributions: 6510, governmentSupport: 16240, investmentGrowth: 12000 },
+    { age: 67, contributions: 15500, governmentSupport: 30000, investmentGrowth: 51500 },
+  ];
+}
+```
+
+It uses the same input shape, responsive sizing, axes, separators, and badges.
+
 ### Full component
 
 Import `StackedAreaChart` into the parent component's `imports` array:

@@ -1,0 +1,75 @@
+<svg
+  role="img"
+  aria-label="Kapitalentwicklung nach Alter, lineare Darstellung"
+  [attr.viewBox]="'0 0 ' + layout().width + ' ' + layout().height"
+  [attr.width]="layout().width"
+  [attr.height]="layout().height"
+  [class.compact]="layout().width < 420"
+>
+  <title>Kapitalentwicklung nach Alter</title>
+  <desc>
+    Gestapeltes Flächendiagramm mit geraden Verbindungslinien: Einzahlungen (blau), Staatliche
+    Förderung (dunkelblau) und Wertzuwachs (orange).
+  </desc>
+  <g [attr.transform]="'translate(' + layout().left + ',16)'">
+    @for (tick of chart().ticks; track tick) {
+      <line
+        class="grid"
+        x1="0"
+        [attr.x2]="layout().plotWidth"
+        [attr.y1]="layout().plotHeight * (1 - tick / chart().maximum)"
+        [attr.y2]="layout().plotHeight * (1 - tick / chart().maximum)"
+      />
+      <text
+        x="-12"
+        [attr.y]="layout().plotHeight * (1 - tick / chart().maximum)"
+        text-anchor="end"
+        dominant-baseline="middle"
+      >
+        {{ currency(tick) }}
+      </text>
+    }
+    @for (band of chart().bands; track band.key) {
+      <path [attr.d]="band.path" [attr.fill]="band.color" />
+    }
+    @for (marker of chart().markers; track marker.key) {
+      @if (marker.height > 0) {
+        <rect
+          [attr.data-series]="marker.key"
+          [attr.x]="layout().plotWidth / 2 - 2"
+          [attr.y]="marker.y"
+          width="4"
+          [attr.height]="marker.height"
+          [attr.fill]="marker.color"
+        />
+      }
+    }
+    @for (boundary of chart().boundaries.slice(1, 3); track $index) {
+      <path class="separator" [attr.d]="boundaryPath(boundary)" />
+    }
+    @for (badge of chart().badges; track badge.number) {
+      <g aria-hidden="true">
+        <circle class="badge" [attr.cx]="badge.x" [attr.cy]="badge.y" r="8" />
+        <text
+          class="badge-number"
+          [attr.x]="badge.x"
+          [attr.y]="badge.y"
+          text-anchor="middle"
+          dominant-baseline="central"
+        >
+          {{ badge.number }}
+        </text>
+      </g>
+    }
+    <path class="axis" [attr.d]="'M0,0V' + layout().plotHeight + 'H' + layout().plotWidth" />
+    @for (point of ages(); track point.age) {
+      <text
+        [attr.x]="point.x"
+        [attr.y]="layout().plotHeight + 22"
+        [attr.text-anchor]="point.anchor"
+      >
+        {{ point.age }}
+      </text>
+    }
+  </g>
+</svg>

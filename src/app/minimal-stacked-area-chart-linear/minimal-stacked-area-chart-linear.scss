@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 290px;
+  max-width: 700px;
+  background: #f6f7f9;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  font:
+    12px Arial,
+    Helvetica,
+    sans-serif;
+}
+
+svg.compact {
+  font-size: 11px;
+}
+
+text {
+  fill: #20252c;
+}
+
+.grid {
+  stroke: #d9dde3;
+}
+
+.axis {
+  fill: none;
+  stroke: #29333d;
+  stroke-width: 1.2;
+}
+
+.separator {
+  fill: none;
+  stroke: #f6f7f9;
+  stroke-width: 2;
+}
+
+.badge {
+  fill: #fff;
+  stroke: #243543;
+  stroke-width: 1;
+}
+
+.badge-number {
+  fill: #172635;
+  font-size: 12px;
+  font-weight: 500;
+}
