@@ -1,6 +1,17 @@
 import { StackedAreaChartPoint } from './stacked-area-chart/chart.types';
+import * as prodData from './prod-data';
 
-export type DemoDatasetId = 'reference' | 'sparse' | 'zero' | 'single' | 'double' | 'empty';
+export type DemoDatasetId =
+  | 'reference'
+  | 'sparse'
+  | 'prod_data1'
+  | 'prod_data2'
+  | 'prod_data3'
+  | 'prod_data4'
+  | 'zero'
+  | 'single'
+  | 'double'
+  | 'empty';
 
 interface DemoDataset {
   readonly id: DemoDatasetId;
@@ -29,6 +40,26 @@ export const DEMO_DATASETS: readonly DemoDataset[] = [
     id: 'sparse',
     label: 'Sparse · 6 points',
     data: referenceData.filter((point) => sparseAges.has(point.age)),
+  },
+  {
+    id: 'prod_data1',
+    label: 'prod data 1',
+    data: prodData.data1,
+  },
+  {
+    id: 'prod_data2',
+    label: 'prod data 2',
+    data: prodData.data2,
+  },
+  {
+    id: 'prod_data3',
+    label: 'prod data 3',
+    data: prodData.data3,
+  },
+  {
+    id: 'prod_data4',
+    label: 'prod data 4',
+    data: prodData.data4,
   },
   {
     id: 'zero',
