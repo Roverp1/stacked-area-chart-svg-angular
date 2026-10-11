@@ -3,16 +3,22 @@
   width: 100%;
   min-width: 290px;
   max-width: 700px;
-  max-height: 350px;
   background: #f6f7f9;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #20252c;
+}
+
+.chart-graphic {
+  position: relative;
 }
 
 svg {
   display: block;
   width: 100%;
-  font-family: Arial, Helvetica, sans-serif;
+  max-height: 350px;
   font-size: 12px;
   color: #20252c;
+  touch-action: pan-y pinch-zoom;
 }
 
 svg.compact {
@@ -55,8 +61,117 @@ svg.compact {
   font-weight: 500;
 }
 
+.selection-guide {
+  stroke: #596a7b;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+
+.selection-marker {
+  stroke: #fff;
+  stroke-width: 2;
+}
+
+.chart-tooltip {
+  position: absolute;
+  z-index: 1;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #d9dde3;
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgb(24 35 51 / 16%);
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.tooltip-age {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.chart-tooltip dl {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.tooltip-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.tooltip-row dt {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+
+.tooltip-swatch {
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tooltip-row dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tooltip-total {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid #e4e8ed;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin: 0;
+  padding: 16px 14px 18px;
+  list-style: none;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.legend-number {
+  display: grid;
+  place-items: center;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #fff;
+  line-height: 1;
+}
+
+.legend-label strong {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 line,
 .separator,
-.badge {
+.badge,
+.selection-marker {
   vector-effect: non-scaling-stroke;
 }

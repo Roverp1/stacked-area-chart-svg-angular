@@ -1,6 +1,6 @@
 # Angular SVG stacked area chart
 
-A standalone Angular component for three financial series. It renders smooth shared boundaries, EUR axes, and numbered badges in native SVG. Chart geometry has no runtime dependencies.
+A standalone Angular component for three financial series. It renders smooth shared boundaries, EUR axes, and numbered badges in native SVG. The full component includes mouse/touch inspection and a numbered amount legend. Chart geometry and interactions have no runtime chart-library dependencies.
 
 ![700px chart preview](chart-700.png)
 
@@ -115,7 +115,13 @@ const projection: readonly StackedAreaChartPoint[] = [
 
 Each amount is a series value at that age. The upper boundary is the sum of all three series. Bands run from contributions (blue) to government support (navy) to investment growth (orange). Pass a new array to update the data.
 
-The chart scales from 290px to 700px wide and from 260px to 350px tall (`clamp(260px, width / 2, 350px)`). Labels remain readable, age ticks thin out on small screens, and tight currency ticks use explicit thousands or millions. For containers under 290px, use `overflow-x: auto`.
+The SVG graphic scales from 290px to 700px wide and from 260px to 350px tall (`clamp(260px, width / 2, 350px)`). The wrapping legend below it adds its own height. Labels remain readable, age ticks thin out on small screens, and tight currency ticks use explicit thousands or millions. For containers under 290px, use `overflow-x: auto`.
+
+Hover inside the plot to inspect the nearest supplied age. A shared tooltip shows the individual amounts and total in EUR, with up to two decimal places. The vertical guide and colored markers identify that observation; values between observations are not invented from the smooth curve. The tooltip disappears when the mouse leaves the plot.
+
+On touch devices, tap to select and drag horizontally to inspect other ages. The card stays visible after release; tap outside the component to dismiss it. Vertical page scrolling and pinch zoom remain available. When data or width changes, inspection follows the same age if it still exists and closes if it disappears.
+
+The legend shows each series' amount at the final observed age, using colored numbered circles that match the band badges. Inspecting another age changes the tooltip, not the legend.
 
 ## Data behavior
 
@@ -123,13 +129,15 @@ The chart scales from 290px to 700px wide and from 260px to 350px tall (`clamp(2
 - Amounts must be finite and nonnegative. Invalid or numerically unrepresentable data shows an invalid-data state.
 - Empty input shows an empty state. All-zero data keeps the zero baseline and hides positive currency ticks.
 - One age shows a narrow stacked marker; two ages use straight boundaries.
+- Single-point and all-zero data support inspection. Empty or invalid data has no tooltip or amount legend.
 - Badges appear only when the full circle fits inside a band.
 - The SVG title and description include the age range, series, and final amounts. Each chart instance gets unique accessibility and clipping IDs.
 
 ## Implementation
 
-- `src/app/stacked-area-chart/stacked-area-chart.ts`, `.html`, `.scss`: inputs, resize handling, labels, badges, and SVG rendering.
+- `src/app/stacked-area-chart/stacked-area-chart.ts`, `.html`, `.scss`: inputs, resize handling, SVG rendering, inspection, and legend.
 - `src/app/stacked-area-chart/chart-geometry.ts`: stacked values, y-axis ticks, Bézier boundaries, and area paths.
+- `src/app/stacked-area-chart/chart-interaction.ts`: SVG pointer coordinates and nearest-observation selection.
 - `src/app/demo-data.ts`: data used by the demo.
 
-The curve and area calculations adapt d3-shape 3.2.0. Damped tangents keep the bands ordered and smooth, and adjacent fills share geometry. d3-shape is not a runtime dependency. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the ISC license, which is included in production assets.
+The curve and area calculations adapt d3-shape 3.2.0. Damped tangents keep the bands ordered and smooth, and adjacent fills share geometry. Pointer conversion and observation selection adapt visx and Recharts. These libraries are not runtime dependencies. [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) retains their ISC and MIT licenses and is included in production assets.

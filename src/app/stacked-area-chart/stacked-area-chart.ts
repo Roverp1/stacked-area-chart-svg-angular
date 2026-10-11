@@ -1,18 +1,27 @@
 import {
   afterNextRender,
+  afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
   signal,
+  viewChild,
 } from '@angular/core';
 import { createChartGeometry, evaluateBoundary } from './chart-geometry';
+import { localPoint, nearestPointIndex } from './chart-interaction';
 import type { ChartInterpolation, StackedAreaChartPoint } from './chart.types';
 
 const numbers = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 2 });
+const seriesLabels = {
+  contributions: 'Einzahlungen',
+  governmentSupport: 'Staatliche Förderung',
+  investmentGrowth: 'Wertzuwachs',
+};
 let nextChartId = 0;
 
 @Component({
@@ -20,6 +29,7 @@ let nextChartId = 0;
   templateUrl: './stacked-area-chart.html',
   styleUrl: './stacked-area-chart.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:pointerdown)': 'onDocumentPointerDown($event)' },
 })
 export class StackedAreaChart {
   readonly data = input.required<readonly StackedAreaChartPoint[]>();
@@ -29,6 +39,18 @@ export class StackedAreaChart {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly width = signal(700);
+  private readonly selectedAge = signal<number | null>(null);
+  private readonly interaction = signal<'mouse' | 'touch'>('mouse');
+  private touchPointerId: number | null = null;
+  private readonly pointerY = signal(0.5);
+  private readonly tooltipElement = viewChild<ElementRef<HTMLElement>>('tooltip');
+  private readonly graphicElement = viewChild<ElementRef<HTMLElement>>('graphic');
+  private readonly tooltipMetrics = signal({
+    width: 0,
+    height: 0,
+    graphicWidth: 700,
+    graphicHeight: 350,
+  });
   private readonly id = `stacked-area-${nextChartId++}`;
   protected readonly titleId = `${this.id}-title`;
   protected readonly descriptionId = `${this.id}-description`;
@@ -54,6 +76,108 @@ export class StackedAreaChart {
     const { plotWidth, plotHeight } = this.layout();
     return createChartGeometry(this.data(), plotWidth, plotHeight, this.interpolation(), 6);
   });
+
+  protected readonly selection = computed(() => {
+    const { points, bands, boundaries } = this.geometry();
+    const index = points.findIndex((point) => point.age === this.selectedAge());
+    if (index < 0) return null;
+    const point = points[index];
+    return {
+      age: numbers.format(point.age),
+      x: boundaries[0].knots[index].x,
+      rows: bands.map((band, bandIndex) => ({
+        ...band,
+        y: boundaries[bandIndex + 1].knots[index].y,
+        label: seriesLabels[band.key],
+        amount: `${numbers.format(point[band.key])} EUR`,
+      })),
+      total: `${numbers.format(point.contributions + point.governmentSupport + point.investmentGrowth)} EUR`,
+    };
+  });
+
+  protected readonly legend = computed(() => {
+    const { points, bands } = this.geometry();
+    const last = points[points.length - 1];
+    if (!last) return null;
+    return {
+      age: numbers.format(last.age),
+      rows: bands.map((band, index) => ({
+        key: band.key,
+        color: band.color,
+        number: index + 1,
+        label: seriesLabels[band.key],
+        amount: `${numbers.format(last[band.key])} EUR`,
+      })),
+    };
+  });
+
+  protected readonly tooltipPosition = computed(() => {
+    const selected = this.selection();
+    if (!selected) return { x: 0, y: 0 };
+    const { width, height, graphicWidth, graphicHeight } = this.tooltipMetrics();
+    const layout = this.layout();
+    const x = ((layout.left + selected.x) / layout.width) * graphicWidth;
+    const y = ((layout.top + this.pointerY() * layout.plotHeight) / layout.height) * graphicHeight;
+    const gap = this.interaction() === 'touch' ? 28 : 12;
+    const padding = 8;
+    const left = x + gap + width <= graphicWidth - padding ? x + gap : x - gap - width;
+    const top = y - gap - height >= padding ? y - gap - height : y + gap;
+    return {
+      x: Math.max(padding, Math.min(left, graphicWidth - width - padding)),
+      y: Math.max(padding, Math.min(top, graphicHeight - height - padding)),
+    };
+  });
+
+  protected onPointerMove(event: PointerEvent) {
+    if (event.pointerType === 'touch' && this.touchPointerId !== event.pointerId) return false;
+    const point = localPoint(event.currentTarget as SVGSVGElement, event);
+    const { points, boundaries } = this.geometry();
+    if (!point || !points.length) return false;
+    const { left, top, plotWidth, plotHeight } = this.layout();
+    const x = point.x - left;
+    const y = point.y - top;
+    if (x < 0 || x > plotWidth || y < 0 || y > plotHeight) {
+      if (event.pointerType !== 'touch') this.selectedAge.set(null);
+      return false;
+    }
+    this.interaction.set(event.pointerType === 'touch' ? 'touch' : 'mouse');
+    this.pointerY.set(y / plotHeight);
+    const index = nearestPointIndex(x, boundaries[0].knots);
+    this.selectedAge.set(points[index].age);
+    return true;
+  }
+
+  protected onPointerDown(event: PointerEvent) {
+    if (event.pointerType !== 'touch' || !event.isPrimary) return;
+    this.touchPointerId = event.pointerId;
+    if (!this.onPointerMove(event)) {
+      this.touchPointerId = null;
+      return;
+    }
+    // Synthetic events have no browser pointer to capture.
+    if (event.isTrusted) (event.currentTarget as SVGSVGElement).setPointerCapture(event.pointerId);
+  }
+
+  protected onPointerUp(event: PointerEvent) {
+    if (this.touchPointerId === event.pointerId) this.touchPointerId = null;
+  }
+
+  protected onPointerCancel(event: PointerEvent) {
+    if (this.touchPointerId !== event.pointerId) return;
+    this.touchPointerId = null;
+    this.selectedAge.set(null);
+  }
+
+  protected onPointerLeave() {
+    if (this.interaction() !== 'touch') this.selectedAge.set(null);
+  }
+
+  protected onDocumentPointerDown(event: PointerEvent) {
+    if (!(event.target instanceof Node) || !this.element.nativeElement.contains(event.target)) {
+      this.selectedAge.set(null);
+      this.touchPointerId = null;
+    }
+  }
 
   protected readonly yTicks = computed(() => {
     const { ticks, yMaximum, height } = this.geometry();
@@ -182,6 +306,37 @@ export class StackedAreaChart {
   });
 
   constructor() {
+    effect(() => {
+      const age = this.selectedAge();
+      if (age !== null && !this.geometry().points.some((point) => point.age === age)) {
+        this.selectedAge.set(null);
+        this.touchPointerId = null;
+      }
+    });
+    afterRenderEffect({
+      read: () => {
+        const tooltip = this.tooltipElement()?.nativeElement;
+        const graphic = this.graphicElement()?.nativeElement;
+        const layout = this.layout();
+        this.selection();
+        if (!tooltip || !graphic) return;
+        const metrics = {
+          width: tooltip.offsetWidth,
+          height: tooltip.offsetHeight,
+          graphicWidth: graphic.clientWidth || layout.width,
+          graphicHeight: graphic.clientHeight || layout.height,
+        };
+        const previous = this.tooltipMetrics();
+        if (
+          metrics.width !== previous.width ||
+          metrics.height !== previous.height ||
+          metrics.graphicWidth !== previous.graphicWidth ||
+          metrics.graphicHeight !== previous.graphicHeight
+        ) {
+          this.tooltipMetrics.set(metrics);
+        }
+      },
+    });
     afterNextRender({
       read: () => {
         const element = this.element.nativeElement;
